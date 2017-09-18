@@ -156,37 +156,81 @@
 
 - 什么是匿名内部类？
 
+	* 匿名内部类即没有名字的内部类，只可被使用一次
+	* 使用匿名内部类前提条件：必须继承自一个父类或实现一个接口
+	* 语法格式为 new SuperType(construction parameters){}
+	* 语法格式为 new 父类构造器(参数列表)|实现接口(){}
+	* 直接将抽象类的方法或者接口方法在大括号中实现，可以省略一个类的书写
+	* 匿名内部类中不能定义构造方法，但可以使用初始化语块代替构造方法
+
 - 对字符串进行 `==` 和 `equals()` 操作时有什么区别？
+
+	* == 用来判断内存地址是否相同
+	* equals()用来判断字符串的内容是否相同
 
 - `hashCode()` 和 `equals()` 何时使用？
 
+	* 相等（相同）的对象必须具有相等的哈希码（或者散列码）
+	* 如果两个对象的 hashCode 相同，它们并不一定相同
+
+	* 往 Set 集合中添加元素时，要保证元素不重复，先调用该元素的 hasCode 方法，定位到它应该放置的物理位置。 如果这个位置上没有元素，就可以直接存储在这个位置上，不用再进行任何比较；如果这个位置上已经有元素了，就调用它的 equals 方法与新元素进行比较，相同的话就不存了，不相同就散列其它的地址。
+	* 集合查找时，hashcode 能大大降低对象比较次数，提高查找效率
+
 - Java 中的 `final`, `finally` 和 `finalize`?
+
+	* final：修饰基本数据类型时，代表常量（不可修改）；修饰类或对象引用时，引用不可重新赋值，而类或者对象依然可以修改；修饰方法时，代表该方法不可被重写；修饰类时，代表该类不可被继承
+	* finally：异常处理时 try／catch／finally 语句中的 finally 语句块无论有没有异常都会执行 finally 语句块，当然也有特殊情况不执行 finally
+	* finalize：垃圾回收器要回收对象的时候，首先会调用这个类的 finalize 方法，可以在该方法中释放调用本地方法时分配的内存
 
 - 什么是内存泄露，Java 是如何处理它的？
 
+	* 存在下面的这种对象，这些对象不会被 GC 回收，却占用着内存，即为内存泄漏（简单说：存在已申请的无用内存无法被回收）
+
+		* 该对象是可达的，即还在被引用着
+		* 该对象是无用的，即程序以后不会再使用该对象
+
+	* 长生命周期的对象持有短生命周期的引用，就很可能会出现内存泄露
+
+
 - 垃圾收集器是什么?它是如何工作的
 
-  - 所有的对象实例都在JVM管理的堆区域分配内存
+	* 垃圾收集是一种自动的内存管理机制
 
-    只要对象被引用，JVM就会认为它还存活于进程中。
+  - 所有的对象实例都在 JVM 管理的堆区域分配内存
+  - 只要对象被引用，JVM 就会认为它还存活于进程中
+  - 一旦对象不再被引用，垃圾收集器将删除它并重新声明为未使用的内存
 
-    一旦对象不再被引用，就不能被应用程序所访问，
+- 比较 `Array` 和 `ArrayList`[链接](http://blog.qianlicao.cn/translate/2016/03/09/array-vs-arraylist/)
 
-    垃圾收集器将删除它并重新声明未使用的内存。
+	不同点：
 
-- 比较 `Arrays` 和 `ArrayLists`。
+	* 实现上：Array 是本地的程序设计组件或者数据结构，ArrayList 是一个 Java 集合类的类
+	* 性能上：Array 会优于 ArrayList
+	* 类型安全方面：ArrayList 是类型安全的，支持编译时检查；Array 不是类型安全的，支持运行时检查
+	* 灵活性：ArrayList 优于 Array，ArrayList 是动态的；Array 是静态的，创建了数组就无法更改它的大小
+	* 基本类型：Array 既可以保存基本类型，也可以保存对象；ArrayList 不可以保存基本类型，可以保存封装类
+	* 泛型：ArrayList 可以显示的支持泛型，Array 不可以
+	* 维度：Array 可以是多维度的，ArrayList 并不支持指定维度
 
-- 比较 `HashSet` 和 `TreeSet`。
+	相同点：
+	
+	* 数据结构：都是基于 index 的数据结构
+	* 空值：都可以存储空值（null），但只有 Object 的数组可以这样，基本类型会存储他们的默认值
+	* 重复：都允许元素重复
 
-- Java 中的类型转换。
+- 比较 `HashSet` 和 `TreeSet`
+
+	* TreeSet 会自动按自然排序法给元素排序，HashSet 不会
+	* 如果不需要使用排序功能,应该使用 HashSet,因为其性能优于 TreeSet
+	* 如果 TreeSet 传入的是自定义的对象,必须让该对象实现 Comparable 接口
+
+- Java 中的类型转换
+
+	* 
 
 - 方法重载和重写的区别
 
-  <p align="center">
-
-  <img alt="Overloading and Overriding" src="https://github.com/stormzhang/android-interview-questions-cn/blob/master/assets/overloading-vs-overriding.png">
-
-  </p>
+  ![](https://github.com/stormzhang/android-interview-questions-cn/blob/master/assets/overloading-vs-overriding.png)
 
   - 重载发生在编译时，重写发生在运行时。重载方法调用与其定义的绑定发生在编译时，但是重写方法调用与其定义的绑定在运行时发生。
   - 静态方法可以重载，意味着一个类可以有多个同名的静态方法。静态方法不能被重写，即使在子类中声明了一个相同的静态方法，它与父类的相同方法无关。
