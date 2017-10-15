@@ -298,15 +298,31 @@
 
 - Java 中的对象是否会以引用传递或者值传递？详细说明。
 
+Java 中的对象以按值传递的形式进行调用，所有方法得到的都是参数值的拷贝
+	
+* 对于基本数据类型的参数，方法得到的是其值的拷贝
+* 对于引用数据类型的参数，方法得到的也是其值（所指向对象的内存地址）的拷贝
+* 方法均不可以修改参数变量的值，对于引用类型参数来说，就是不能让引用类型参数指向新的对象
+* 但是方法可以修改引用类型参数所指向对象的内容，因为方法得到的是该对象地址的拷贝，可以根据地址获取到该对象
+
 - 什么是 ThreadPoolExecutor？ [Link](https://blog.mindorks.com/threadpoolexecutor-in-android-8e9d22330ee3)
 
 	* 线程池的目的是实现线程复用，减少频繁创建和销毁线程，提高系统性能
 	* ThreadPoolExecutor 是线程池的核心类，用于创建线程池
+	* ThreadPoolExecutor 的构造方法包括如下参数：
+
+		* corePoolSize 核心线程池大小
+		* maximumPoolSize 线程池最大容量
+		* keepAliveTime 线程池空闲时，线程存活时间
+		* TimeUnit 时间单位
+		* ThreadFactory 线程工厂
+		* BlockingQueue 任务队列
+		* RejectedExecutionHandler 线程拒绝策略
 
 - 本地变量、实例变量以及类变量之间的区别？
 
 	* 类体由两部分组成，变量定义和方法定义
-	* 本地变量即局部变量，定义在方法内部或者方法的行参中
+	* 本地变量即局部变量，定义在方法内部或者方法的形参中
 	* 实例变量为为非静态变量，每一个对象的实例变量都不同
 	* 类变量为静态变量，属于类所有
 
@@ -416,9 +432,67 @@
 
 ### Android 核心
 
-* 阐述一下 Activity 的生命周期。
+* 阐述一下 Activity 的生命周期。[参考链接](https://developer.android.com/guide/components/activities.html?hl=zh-cn)
 
-* 谈谈 Android 的四大组件。
+	![](http://oj1xifth5.bkt.clouddn.com/activity_lifecycle.png)
+
+	Activity 生命周期的顺序为：
+
+	onCreate() -> onContentChanged() -> onStart() -> onPostCreate()-> onResume() -> onPostResume -> onPause() -> onStop() -> onDestroy()
+
+	* onCreate() 方法：首次创建 Activity 时调用，应该在此方法中执行所有正常的静态设置 — 创建视图、将数据绑定到列表等等。
+	* onRestart() 方法：在 Activity 已停止（调用 onStop()）并即将再次启动前调用，始终后接 onStart()
+	* onStart() 方法：在 Activity 即将对用户可见之前调用，可后接 onStop()进入隐藏状态
+	* onResume() 方法：在 Activity 即将开始与用户进行交互之前调用，始终后接 onPause()
+	* onPause() 方法：当系统即将开始继续另一个 Activity 时调用。用于确认对持久性数据的未保存更改、停止动画以及其他可能消耗 CPU 的内容。应该非常迅速地执行所需操作，因为它返回后，下一个 Activity 才能继续执行。
+	* onStop() 方法：在 Activity 对用户不再可见时调用。可后接 onRestart()。
+	* onDestroy() 方法：在 Activity 被销毁前调用。
+
+	方法调用后终止问题：
+
+	* onCreate(),onRestart(),onStart(),onResume() 调用后，系统不能随时终止 Activity 进程。
+	* 而 onPause(),onStop(),onDestroy() 调用后，可以终止。
+	* Activity 创建后，onPause() 必定成为最后调用的方法，然后才能终止进程 — 如果系统在紧急情况下必须恢复内存，则可能不会调用 onStop() 和 onDestroy()。
+	* 所以，在 onPause() 调用时，向存储设备写入至关重要的持久性数据（例如用户编辑）。
+	* 不过，应该对 onPause() 调用期间必须保留的信息有所选择，因为该方法中的任何阻止过程都会妨碍向下一个 Activity 的转变并拖慢用户体验。
+
+* 谈谈 Android 的四大组件。[参考链接1](http://wiki.xuchongyang.com/Android/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E7%82%B9.html)、[参考链接2](http://www.cnblogs.com/bravestarrhu/archive/2012/05/02/2479461.html)
+
+	四大组件：Activity、Service、BroadcastReceiver、ContentProvider
+	
+	* Activity：
+
+		* 一个 Activity 通常就是一个单独的屏幕，它上面可以显示一些控件也可以监听并处理用户的事件做出响应
+		* Activity 之间通过 Intent 进行通信，应用内使用显示 Intent，跨应用使用隐式 Intent
+		* 在隐式 Intent 中，有三个最重要的部分：动作（Action）、类别（category）以及动作对应的数据（data）
+		* Action、category 和 Uri 分别对应着 intent-filter 中的 action、category 和 data
+
+	* Service：
+
+		* Service 是实现程序后台运行的解决方案，非常适合去执行不需要和用户交互（即没有界面）并且还要求长期执行的任务
+		* 通过 Context 的 startService 和 stopService 可以启动、停止服务，启动服务后启动者和服务就没有关系了，启动者结束生命周期，服务依然在
+		* 通过 Context 的 bindService 和 unBindService 可以绑定、解绑腹，绑定服务后服务会返回给启动者一个 IBind 接口实例，启动者可以通过这个接口实例回调服务的方法。此时 Contetx 退出，服务也会跟着解绑退出
+
+	* BroadcastReceiver：
+
+		* 应用可以使用广播接收器对感兴趣的外部事件或内部事件进行注册监听，可以静态注册、动态注册
+		* 广播接收器没有用户界面。但它们可以启动一个 Activity 或 Serice 来响应它们收到的信息，或者用 NotificationManager 来通知用户
+		* 广播分为普通广播、有序广播、粘性广播。注册有序广播接收器可以设定接收优先级按序接收或拦截；发送粘性广播后注册广播接收器也可以接收到该粘性广播
+
+	* ContentProvider：
+
+		* 内容提供器用于提供在不同程序之间实现数据共享的功能，允许一个程序访问另一个程序中的数据，同时还能保证被访数据的安全性
+		* 每个 ContentProvider 都用一个 Uri 作为独立的标识
+
+		* 访问其他程序中的数据
+
+			* 可以通过 Context 的 getContentResolver 方法获取到 ContentResolver 的实例，通过该实例的一系列方法对目标数据进行 CRUD 操作
+			* 通过内容 Uri 表明想要访问的目标程序
+
+		* 创建自己的内容提供器
+
+			* 继承 ContentProvider，实现抽象方法
+			* 通过 UriMacther 类的 match 方法判断其他程序想要访问的数据地址
 
 * Service 与 IntentService 的区别。[Link](https://stackoverflow.com/a/15772151/5153275)
 
