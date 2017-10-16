@@ -191,8 +191,9 @@
 		* 该对象是无用的，即程序以后不会再使用该对象
 
 	* 长生命周期的对象持有短生命周期的引用，就很可能会出现内存泄露
+	* 内存泄漏可能的情况：
 
-
+		* 静态集合类引起的
 - 垃圾收集器是什么?它是如何工作的
 
 	* 垃圾收集是一种自动的内存管理机制
@@ -471,15 +472,15 @@ Java 中的对象以按值传递的形式进行调用，所有方法得到的都
 
 		* Service 是实现程序后台运行的解决方案，非常适合去执行不需要和用户交互（即没有界面）并且还要求长期执行的任务
 		* 通过 Context 的 startService 和 stopService 可以启动、停止服务，启动服务后启动者和服务就没有关系了，启动者结束生命周期，服务依然在
-		* 通过 Context 的 bindService 和 unBindService 可以绑定、解绑腹，绑定服务后服务会返回给启动者一个 IBind 接口实例，启动者可以通过这个接口实例回调服务的方法。此时 Contetx 退出，服务也会跟着解绑退出
+		* 通过 Context 的 bindService 和 unBindService 可以绑定、解绑服务，绑定服务后服务会返回给启动者一个 IBind 接口实例，启动者可以通过这个接口实例回调服务的方法。此时 Context 退出，服务也会跟着解绑退出
 
 	* BroadcastReceiver：
 
 		* 应用可以使用广播接收器对感兴趣的外部事件或内部事件进行注册监听，可以静态注册、动态注册
-		* 广播接收器没有用户界面。但它们可以启动一个 Activity 或 Serice 来响应它们收到的信息，或者用 NotificationManager 来通知用户
+		* 广播接收器没有用户界面。但它们可以启动一个 Activity 或 Service 来响应它们收到的信息，或者用 NotificationManager 来通知用户
 		* 广播分为普通广播、有序广播、粘性广播。注册有序广播接收器可以设定接收优先级按序接收或拦截；发送粘性广播后注册广播接收器也可以接收到该粘性广播
 
-	* ContentProvider：
+	* ContentProvider：可参考《第二行代码》Page 270
 
 		* 内容提供器用于提供在不同程序之间实现数据共享的功能，允许一个程序访问另一个程序中的数据，同时还能保证被访数据的安全性
 		* 每个 ContentProvider 都用一个 Uri 作为独立的标识
@@ -496,13 +497,43 @@ Java 中的对象以按值传递的形式进行调用，所有方法得到的都
 
 * Service 与 IntentService 的区别。[Link](https://stackoverflow.com/a/15772151/5153275)
 
+	* 相同点：
+
+		* 都是在后台运行，不可见
+		* 都可在任何线程、系统组件进行开启
+
+	* 不同点：
+
+		* Service 默认运行在主线程，不可直接做耗时操作；
+		* IntentService 默认运行在子线程，可直接执行耗时操作
+		* Service 不会自动退出，需要手动 stopSelf、stopService 或者 unbindService；
+		* IntentService onHandleIntent 方法执行完毕后会自动退出。当有多次请求（即多次调用 startService）时，因只有一个工作线程，所以会一个一个进行处理，处理完毕后退出
+
 * Android 应用的结构是什么？
 
 * Android 应用中如何保存数据。
 
+	分为保存键值集、保存文件（分为内部存储和外部存储）、在 SQL 数据库中保存数据以及在网络中使用网络存储。
+	
+	其中：
+	
+	* 键值集中适合保存私有原始轻量化数据
+	* 内部存储适合保存私有数据
+	* 外部存储适合保存公共数据
+	* 私有数据库中适合保存结构化数据
+	* 网络存储需使用自己的网络服务器存储数据
+
 * 如何在 Android 应用中执行耗时操作。
 
-* 两个 Fragment 之间如何通信。
+	将耗时操作放到非 UI 线程执行，常用的包括：AsyncTask、Handler、Thread 等。
+
+* 两个 Fragment 之间如何通信。[参考链接](http://blog.csdn.net/u012702547/article/details/49786417)
+
+	* 通过宿主 Activity 拿到 FragmentManager，进而再 findFragmentById 获取到另一个 Fragment
+	* 使用接口：在一个 Fragment 中定义接口，并在 onAttach 方法中初始化接口对象。Activity 来实现该接口，并在实现中调用另一个 Fragment 的相应方法
+	* 使用 Activity 的公共方法：直接 getActivity 并调用 Activity 的公共方法
+	* 使用广播
+	* 使用 EventBus
 
 * 阐述一下 Android 的通知系统。
 
