@@ -530,10 +530,11 @@ Java 中的对象以按值传递的形式进行调用，所有方法得到的都
 * 两个 Fragment 之间如何通信。[参考链接](http://blog.csdn.net/u012702547/article/details/49786417)
 
 	* 通过宿主 Activity 拿到 FragmentManager，进而再 findFragmentById 获取到另一个 Fragment
-	* 使用接口：在一个 Fragment 中定义接口，并在 onAttach 方法中初始化接口对象。Activity 来实现该接口，并在实现中调用另一个 Fragment 的相应方法
+	* 使用接口：在一个 Fragment 中定义接口，并在 onAttach 方法中拿到 Activity 初始化接口对象。Activity 来实现该接口，并在实现中调用另一个 Fragment 的相应方法
 	* 使用 Activity 的公共方法：直接 getActivity 并调用 Activity 的公共方法
 	* 使用广播
 	* 使用 EventBus
+	* 使用 Fragment 的 setArguments？
 
 * 阐述一下 Android 的通知系统。
 
@@ -541,19 +542,61 @@ Java 中的对象以按值传递的形式进行调用，所有方法得到的都
 
 * 什么是 Fragment？
 
+	* 碎片是一种可以嵌入在活动中的 UI 片段
+	* 可以将多个碎片组合在一个 Activity 中，也可以在多个 Activity 中重复使用一个碎片
+	* 可以在 Activity 运行时动态添加、删除碎片
+	* 可以把碎片当作 Activity 的模块化组成部分，具有自己的生命周期，能接收自己的输入事件
+
 * 为什么建议只使用默认的构造方法来创建 Fragment？[Link](https://stackoverflow.com/a/16042750/2809326)
 
-* 为什么 Bundle 被用来传递数据，为什么不能使用简单的 Map 数据结构？
+	* 应当使用默认构造方法创建 Fragment，然后使用 setArguments 添加 Bundle 来传递参数
+	* 因为系统在储存 Fragment 的状态时（比如说屏幕旋转导致的重新加载），系统会为我们自动存储 Bundle
 
-* 阐述一下 Fragment 的生命周期。[Link](https://www.techsfo.com/blog/wp-content/uploads/2014/08/complete_android_fragment_lifecycle.png)
+* 为什么 Bundle 被用来传递数据，为什么不能使用简单的 Map 数据结构？[链接1](https://github.com/android-cn/android-discuss/issues/142)，[链接2](http://www.codes51.com/article/detail_163576.html)，[链接3](http://droidyue.com/blog/2017/02/12/dive-into-arraymap-in-android/index.html)
+
+	原因一：速度和内存占用问题
+	
+	* 使用 Bundle 传递数据一般用于启动 Activity，启动 Fragment 时，数据量一般都不大
+	* Bundle 内部由 ArrayMap 实现。ArrayMap 的内部实现是两个数组，一个数组存放 key 的 hashCode 值，一个数组存放 key 与 value 值。在查找、添加、删除数据时，会根据二分查找法查找 key 的 hashCode 值所对应的 index 值，再根据 index 去查找 key 所对应的 value 值
+	* HashMap 的实现则是采用数组加链表的结构，默认使用一个容量为 16 的数组来存储，数组中每一个元素又是一个链表的头节点
+	* 所以在小数据量的情况下，ArrayMap（Bundle） 比 HashMap 在速度和内存上都更占优势
+	
+	原因二：序列化问题
+	
+	* Android 中使用 Intent 来传递数据时，需要保证数据是基本数据类型或可序列化类型
+	* Bundle 使用 Parcelable 序列化，HashMap 使用 Serialable 序列化
+	* 在 Android 中，更推荐使用 Parcelable 序列化，因为 Serializable 接口使用了反射机制，这个过程相对缓慢，而且往往会产生出很多临时对象，可能会触发垃圾回收器频繁地进行垃圾回收。相比而言，Parcelable 接口比 Serializable 接口效率更高，性能方面要高出 10x 多倍。
+
+* 阐述一下 Fragment 的生命周期。[参考链接](https://developer.android.com/guide/components/fragments.html?hl=zh-cn)
+
+	![](http://oj1pajfyu.bkt.clouddn.com/fragment_lifecycle.png)
+
+	* Fragment 的生命周期与 Activity 的生命周期协调一致
+	* Activity 的每次生命周期回调都会引发每个片段的类似回调
+	* 片段还有几个额外的生命周期回调，用于处理与 Activity 的唯一交互，以执行构建和销毁片段 UI 等操作，包括：
+		* onAttach：在片段已与 Activity 关联时调用
+		* onCreateView：在这可创建片段的视图层次结构
+		* onActivityCreated：在 Activity 的 onCreate() 方法已返回时调用
+		* onDestroyView：在移除与片段关联的视图层次结构时调用
+		* onDetach：在取消片段与 Activity 的关联时调用
+
+	下图为 Activity 的每个连续状态如何决定片段可以收到的回调方法
+	![](http://oj1pajfyu.bkt.clouddn.com/activity_fragment_lifecycle.png)
 
 * 如何理解 Android 的 Dialog ？
 
 * 解释下 Android 的 View 。
 
+	* View 是 UI 组件最基本的构建块
+	* 一个 View 占据屏幕的一块区域，负责绘制和事件处理
+
 * 你能创建自定义 View 吗？具体是如何创建的？
 
 * 什么是 ViewGroup ，它与 View 的区别在哪里？
+
+	* ViewGroup 是一个放置 View 的容器，继承自 View，是一种特殊的 View
+	* ViewGroup 的职能为：给 childView 计算出建议的宽、高和测量模式；决定 childView 的位置；
+	* View 的职能为：根据测量模式和 ViewGroup 建议的宽高计算出自己的宽和高；在 ViewGroup 为其指定的区域内绘制自己的形态
 
 * Fragment 和 Activity 有什么区别？它们之间又有什么关系？
 
@@ -563,11 +606,28 @@ Java 中的对象以按值传递的形式进行调用，所有方法得到的都
 
 * 解释一下 Android 中的 Intent 。[Link](https://stackoverflow.com/questions/6578051/what-is-an-intent-in-android)
 
+	* Intent 是一个消息传递对象，在启动其他应用组件时使用
+	* 可以启动 Activity，启动 Service，发送广播
+	* Intent 可以描述目标组件的一些特性，并可以携带一些必要数据
+
 * 什么是隐式 Intent ？
+
+	* 不指定特定的组件，而是声明要执行的常规操作（Action），从而允许其他应用中的组件来处理它
+	* 如声明发送功能，那么拥有发送 Action 的组件都可进行响应
 
 * 什么是显式 Intent ？
 
-* 解释一下 AsyncTask 。
+	* 按名称指定要启动的组件，完全限定类名
+	* 通常会在自己的应用中使用显式 Intent 来启动组件，因为知道想要启动的 Activity 或服务的类名
+
+* 解释一下 AsyncTask。[参考链接](http://markxu.coding.me/wiki/%E5%A4%9A%E7%BA%BF%E7%A8%8B/Android%E5%9F%BA%E7%A1%80%EF%BC%9AAsyncTask%E7%9A%84%E5%BA%94%E7%94%A8.html)
+
+	* AsyncTask 是 Android 提供的一个助手类，对 Thread 和 Handler 进行了封装，方便我们在后台线程执行耗时操作，在主线程更新 UI 等
+	* AsyncTask 有四个回调方法：onPreExecute、doInBackground、onProgressUpdate、onPostExecute。
+		* onPreExecute 在执行后台操作之前调用，运行在主线程
+		* doInBackground 是必须实现的一个核心方法，可以执行后台耗时操作，运行在自子线程
+		* onProgressUpdate 在 doInBackground 方法中调用publishProgress 方法时会进行回调，可以进行后台操作状态的展示更新，运行在主线程
+		* onPostExecute 在后台操作完成后调用，运行在主线程
 
 * 如何理解 Android 中的广播。[Link](https://stackoverflow.com/questions/5296987/what-is-broadcastreceiver-and-when-we-use-it)
 
