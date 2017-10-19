@@ -631,7 +631,11 @@ Java 中的对象以按值传递的形式进行调用，所有方法得到的都
 
 * 如何理解 Android 中的广播。[Link](https://stackoverflow.com/questions/5296987/what-is-broadcastreceiver-and-when-we-use-it)
 
-* 如何理解 Android 的 LocalBroadcastManager 。[Link](https://developer.android.com/reference/android/support/v4/content/LocalBroadcastManager.html)
+	* 广播接收器是一种用于响应系统范围广播通知的组件
+	* 广播接收器不会显示用户界面，但可以创建状态栏通知，在发生广播事件时提醒用户
+	* 广播接收器更常见的用途是作为通向其他组件的“通道”，比如开启一个服务，发起一个通知等，设计用于执行极少量的工作
+
+* 如何理解 Android 的 LocalBroadcastManager 。[参考链接](https://developer.android.com/guide/components/fundamentals.html)
 
 * 什么是 JobScheduler ？[Link](http://www.vogella.com/tutorials/AndroidTaskScheduling/article.html)
 
@@ -639,17 +643,63 @@ Java 中的对象以按值传递的形式进行调用，所有方法得到的都
 
 * 解释一下什么是 support libary ，以及为什么要引入 support library ？[Link](http://martiancraft.com/blog/2015/06/android-support-library/)
 
-* 如何理解 Android 中的 ContentProvider 。它通常用来干什么？
+* 如何理解 Android 中的 ContentProvider 。它通常用来干什么？[参考链接](https://developer.android.com/guide/components/fundamentals.html)
+
+	* 内容提供器管理一组共享的应用数据
+	* 其他应用可以通过我们应用程序的内容提供程序查询、甚至修改我们应用的数据
+	* 我们也可以通过其他应用程序的内容提供器查询、修改该应用的数据
+	* 也适用于读取和写入应用不共享的私有数据
+	* 定义内容提供器需要继承自 ContentProvider，并实现相应的方法
 
 * 什么是 Data Binding ？[Link](https://developer.android.com/topic/libraries/data-binding/index.html)
 
 * Android 的核心组件具体都有什么？[Link](https://developer.android.com/topic/libraries/architecture/index.html)
 
-* 什么是 ADB ？
+* 什么是 ADB ？[参考链接](https://developer.android.com/studio/command-line/adb.html?hl=zh-cn#howadbworks)
 
-* 什么是 ANR ？如何避免发生 ANR ？
+	ADB 是 Android Debug Bridge 的简称，即 Android 调试桥。是一个通用命令行工具，允许与模拟器或连接的 Android 设备进行通信。包括三个组件：
+	
+	* 客户端：运行在开发计算机上。用来发送命令，可以通过 adb 命令在命令行终端调用到客户端
+	* 服务器：以后台进程形式运行在开发计算机上。用来管理客户端（开发计算机）和后台程序（Android 终端）之间的通信
+	* 后台程序（adbd）：以后台进程形式运行在模拟器或 Android 设备上。在设备上运行命令
 
-* AndroidManifest.xml 是什么？
+* 什么是 ANR ？如何避免发生 ANR ？[参考链接1](http://droidyue.com/blog/2015/07/18/anr-in-android/index.html)、[参考链接2](http://droidyue.com/blog/2015/09/05/android-process-and-thread-schedule-nice/)、[参考链接3](http://www.jianshu.com/p/124f3b75e164)
+
+	* ANR 是 Application Not Responding，即应用程序未响应
+	* 以下情况会引起 ANR：
+
+		* 主线程被 IO 操作堵塞
+		* 主线程存在耗时计算
+		* 主线程存在错误操作，如 Thread.sleep 或 Thread.wait 等
+
+	* 以下情况会弹出 ANR 对话框
+
+		* 应用在 5 秒内未响应用户的输入事件（触摸、按键）
+		* BroadcastReceiver 未在 10 秒内完成相应的处理
+		* Activity、Application 回调方法超时时间：5 秒
+		* Service 回调方法超时时间：20 秒
+		* BroadcastReceiver 回调方法超时时间：前台 App 10 秒，后台 App 60 秒
+
+	* 如何避免发生 ANR：
+
+		* 使用 AsyncTask 处理耗时 IO 操作
+		* 使用 Thread 或 HandlerThread 时，要调用 Process.setThreadPriority(PROCESS_THREAD_PRIORITY_BACKGROUND)设置线程优先级，因为默认 Thread 优先级和主线程相同
+		* 使用 Handler 处理工作线程结果，不要使用 Thread.sleep，Thread.wait
+		* Activity 的 onCreate 和 onResume 回调中，避免耗时代码
+		* BroadcastReceiver 的 onReceive 方法也应避免耗时代码，可以开启 IntentService 代替
+		* 可以通过查看 `/data/anr/traces.txt` 文件定位 ANR 情况
+
+* AndroidManifest.xml 是什么？[参考链接](https://developer.android.com/guide/topics/manifest/manifest-intro.html?hl=zh-cn)
+
+	* AndroidManifest.xml 是应用清单，用来向 Android 系统提供必要的应用信息，系统必须得有这些信息才可以运行应用的代码
+	* 具体功能如下：
+
+		* 为应用的 Java 软件包命名，软件包名称充当应用的唯一标志符
+		* 描述四大组件，以及它们可以处理的 Intent 信息，启动这些组件的条件信息等
+		* 确定托管应用组件的进程
+		* 声明权限，权限是用于限制对部分代码或设备上数据的访问，为了保护可能被误用以致破坏或损害用户体验的关键数据和代码
+		* （声明应用所需的最低 Android API 级别）
+		* （列出应用必须链接到的库）
 
 * 解释一下 broadcast 和 intent 在 app 内传递消息的工作流程。
 
