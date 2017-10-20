@@ -581,6 +581,7 @@ Java 中的对象以按值传递的形式进行调用，所有方法得到的都
 		* onDetach：在取消片段与 Activity 的关联时调用
 
 	下图为 Activity 的每个连续状态如何决定片段可以收到的回调方法
+	
 	![](http://oj1pajfyu.bkt.clouddn.com/activity_fragment_lifecycle.png)
 
 * 如何理解 Android 的 Dialog ？
@@ -703,18 +704,42 @@ Java 中的对象以按值传递的形式进行调用，所有方法得到的都
 
 * 解释一下 broadcast 和 intent 在 app 内传递消息的工作流程。
 
+	* 
+
 * 当 Bitmap 占用较多内存时，你是怎么处理的？
 
 * Android 应用有哪些不同的存储数据的方式？
 
+	* 键值集（SharedPreferences）
+	* SQL 数据库
+	* 文件
+	* 网络存储
+
 * 什么是 Dalvik 虚拟机？
+
+	* Dalvik 虚拟机是 Google 设计用于 Android 平台的虚拟机
+	* 支持已转换为 .dex 格式的 Java 程序的运行，.dex 格式是专门为 Dalvik 虚拟机设计的一种压缩格式
+	* 允许在有限内存中运行多个虚拟机实例，并且每一个都作为独立的 Linux 进程运行
+
+	Dalvik 与 JVM 的关系：
+	
+	* Dalvik 基于寄存器，JVM 基于堆栈
+	* Dalvik 有自己的字节码，并不使用 Java 字节码
+	* 从 Android 2.2 开始，Dalvik 开始支持即时编译
+	* Dalvik 会通过 Zygote 进行类的预加载和资源的预加载，完成虚拟机的初始化
 
 * AsyncTask 的生命周期和(它所属的) Activity 的生命周期有什么关系？这种关系可能会导致什么样的问题？ 如何避免这些问题发生？
 
 
 * Intent filter 是用来做什么的？
 
+	* Intent filter 即 Intent 过滤器，是应用清单文件中的表达式，用来指定该组件要接收的 Intent 类型
+	* 比如给 Activity 声明了 Intent filter 后，可以使其他应用使用某一特定类型的 Intent 启动该 Activity
+	* Intent filter 可以包括 action（必须有一个）、category 和 data
+
 * 什么是 Sticky Intent？[Link](http://www.androidinterview.com/what-is-a-sticky-intent/)
+
+	* Sticky Intent 是发送粘性广播时的消息传递对象
 
 * 什么是 AIDL ？列举一下通过 AIDL 创建被绑定的服务（bounded service）的步骤。
 
@@ -732,13 +757,24 @@ Java 中的对象以按值传递的形式进行调用，所有方法得到的都
 
 * 谈谈位图池。[Link](https://blog.mindorks.com/how-to-use-bitmap-pool-in-android-56c71a55533c)
 
-* 在 Android 中如何避免内存泄漏？
+* 在 Android 中如何避免内存泄漏？[参考链接](http://xuchongyang.com/2017/10/16/Java-%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F%E5%AD%A6%E4%B9%A0/)
+
+	* 将非静态内部类改为静态内部类
+	* 通过程序逻辑切段非静态内部类所持有的外部类引用
+	* 单例模式使用生命周期更长的 Context
+	* 及时关闭各种连接（数据库、网络、cursor 等），释放资源
 
 * Android 桌面的小部件是什么？
 
 * 什么是 AAPT ？
 
-* 你是如何在 Android 应用程序中发现内存泄漏的？
+* 你是如何在 Android 应用程序中发现内存泄漏的？[参考链接](http://droidyue.com/blog/2016/11/23/memory-leaks-in-android/index.html)
+
+	发现内存泄漏的方法：
+	
+	* 使用 LeakCanary
+	* 使用 Android Monitor
+	* 启用 StrictMode
 
 * 你如何排查应用崩溃的原因？
 
@@ -792,7 +828,13 @@ Java 中的对象以按值传递的形式进行调用，所有方法得到的都
 
 * 什么是渲染脚本（renderscript）？[Link](https://blog.mindorks.com/comparing-android-ndk-and-renderscript-1a718c01f6fe)
 
-* Dalvik 虚拟机模式和 ART（Android Runtime）虚拟机模式的区别。
+* Dalvik 虚拟机模式和 ART（Android Runtime）虚拟机模式的区别。[即时编译](https://zh.wikipedia.org/wiki/%E5%8D%B3%E6%99%82%E7%B7%A8%E8%AD%AF)、[ART](https://zh.wikipedia.org/wiki/Android_Runtime)
+
+	* Dalvik 采用 JIT 即时编译技术，ART 采用 Ahead-of-time AOT 预编译技术
+	* Dalvik 虚拟机在应用程序启动时，JIT 通过进行连续的性能分析来优化程序代码的执行，在程序运行的过程中，Dalvik 虚拟机在不断的将字节码编译成机器码
+	* ART 虚拟机在应用程序安装的过程中，ART 就已经将所有的字节码重新编译成了机器码。应用程序运行过程中无需进行实时的编译工作，只需要进行直接调用
+	* 所以 ART 虚拟机提高了程序运行效率，减少手机电量消耗
+	* 机器码占用空间更大，所以 ART 下应用占用内部空间更大，首次安装因需要预编译所以时间相比 Dalvik 会略长
 
 * FlatBuffers 和 JSON 的区别。[Link](https://blog.mindorks.com/why-consider-flatbuffer-over-json-2e4aa8d4ed07)
 
@@ -803,6 +845,16 @@ Java 中的对象以按值传递的形式进行调用，所有方法得到的都
 * 阐述一下 Android 中的 HashMap , ArrayMap 和 SparseArray 。[Link](https://blog.mindorks.com/android-app-optimization-using-arraymap-and-sparsearray-f2b4e2e3dc47)
 
 * 阐述一下 Looper, Handler 和 HandlerThread 。[Link](https://blog.mindorks.com/android-core-looper-handler-and-handlerthread-bd54d69fe91a)
+
+	一句话：Looper 不断从 MessageQueue 中取出 Message 交给相应的 Handler 处理。
+	
+	以上称为消息处理机制（消息循环）。
+	
+	* Android 中消息循环和消息队列都是针对具体线程的，除了 UI 线程之外，默认创建的工作线程是没有消息循环的
+	* 普通工作线程想具有消息循环机制的话，先调用 Looper.prepare 创建消息队列，再调用 Looper.loop 开启消息循环。此时该线程为 LooperThread
+	* 在 LooperThread 中创建 Handler 对象，此时 Handler 对象会自动关联到当前线程的 Looper 对象
+	* 使用 HandlerThread 可以很方便的开启一个包含 Looper 的线程，开启线程后，可以通过该线程的 Looper 对象去构建相应的 Handler 对象。
+	* HandlerThread 提供了 quit 和 quitSafely 方法，可以很方便的终止线程消息队列
 
 * 如何降低 Android 应用的耗电量？[Link](https://blog.mindorks.com/battery-optimization-for-android-apps-f4ef6170ff70)
 
@@ -911,18 +963,10 @@ Java 中的对象以按值传递的形式进行调用，所有方法得到的都
 
 * 开发 Android 应用程序时应该连续测量哪些指标 ？[Link](https://blog.mindorks.com/android-app-performance-metrics-a1176334186e)
 
-
-### 贡献者
-
-感谢这些无私的贡献者，排名不分先后。
-
-[mengxn](https://github.com/mengxn)、[innovatorCL](https://github.com/innovatorCL)、[SmartNJ](https://github.com/SmartNJ)、[Zhiw](https://github.com/Zhiw)、[lanyuanxiaoyao](https://github.com/lanyuanxiaoyao)、[934079371](https://github.com/934079371)、[cdevelopr](https://github.com/cdevelopr)、[smartbeng](https://github.com/smartbeng)、[ikook](https://github.com/china-kook)、[mrfanr](https://github.com/mrfanr)、[androidZzT](https://github.com/androidZzT)、[qiaojialin](https://github.com/qiaojialin)、[maokai1229](https://github.com/maokai1229)、[renxuelong](https://github.com/renxuelong)、[dzx1994](https://github.com/dzx1994)
-
-
 ### License
 
 ```
-   Copyright (C) 2017 stormzhang
+   Copyright (C) 2017 xcy396
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
