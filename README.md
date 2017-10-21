@@ -810,6 +810,26 @@ Java 中的对象以按值传递的形式进行调用，所有方法得到的都
 
 * 有哪些类型的广播？
 
+	按执行顺序分为：
+	
+	* 标准广播：完全异步执行，所有广播接收器一起接到，无法被某个接收器截断
+	* 有序广播：同步执行，优先级高的广播接收器先接收，并可以截断该条广播
+
+	按广播定义类型分为：
+	
+	* 系统广播：Android 系统发出的广播，比如电池电量改变、时区改变、网络状态改变等
+	* 自定义广播：自己定义的广播
+
+	按广播范围分为：
+	
+	* 全局广播：可以被任何应用程序接收到的广播
+	* 本地广播：只能在本应用程序内部传递的广播
+
+	按注册后是否可接收分为：
+	
+	* 粘性广播：粘性广播发送后，再进行注册的广播接收器也可接收到该广播，可接收到几条？？？
+	* 非粘性广播：广播发送后注册的广播接收器无法接收到该广播
+
 * 你开发过组件吗？请描述一下。[Link](https://blog.mindorks.com/android-widgets-ad3d166458d3)
 
 * 如何理解上下文（Context）。怎么使用它？[Link](https://medium.com/p/understanding-context-in-android-application-330913e32514)
@@ -844,17 +864,35 @@ Java 中的对象以按值传递的形式进行调用，所有方法得到的都
 
 * 阐述一下 Android 中的 HashMap , ArrayMap 和 SparseArray 。[Link](https://blog.mindorks.com/android-app-optimization-using-arraymap-and-sparsearray-f2b4e2e3dc47)
 
-* 阐述一下 Looper, Handler 和 HandlerThread 。[Link](https://blog.mindorks.com/android-core-looper-handler-and-handlerthread-bd54d69fe91a)
+* 阐述一下 Looper, Handler 和 HandlerThread 。[参考链接](http://markxu.coding.me/wiki/%E5%A4%9A%E7%BA%BF%E7%A8%8B/Android%E5%9F%BA%E7%A1%80%EF%BC%9AHandler%E3%80%81Looper%E4%B8%8EMessage.html)
 
 	一句话：Looper 不断从 MessageQueue 中取出 Message 交给相应的 Handler 处理。
 	
 	以上称为消息处理机制（消息循环）。
 	
 	* Android 中消息循环和消息队列都是针对具体线程的，除了 UI 线程之外，默认创建的工作线程是没有消息循环的
-	* 普通工作线程想具有消息循环机制的话，先调用 Looper.prepare 创建消息队列，再调用 Looper.loop 开启消息循环。此时该线程为 LooperThread
+	* Handler 用来将消息压入消息队列以及处理消息
+	* 普通工作线程想具有消息循环机制的话，先调用 Looper.prepare 创建消息队列、构造 Looper，再调用 Looper.loop 开启消息循环。此时该线程为 LooperThread
 	* 在 LooperThread 中创建 Handler 对象，此时 Handler 对象会自动关联到当前线程的 Looper 对象
-	* 使用 HandlerThread 可以很方便的开启一个包含 Looper 的线程，开启线程后，可以通过该线程的 Looper 对象去构建相应的 Handler 对象。
+	* （构造 Handler 时如果不传 Looper，则会自动调用 mLooper = Looper.myLooper()，Handler 对象会自动关联到当前线程的 Looper 对象）
+	* 使用 HandlerThread 可以很方便的开启一个包含 Looper 的子线程，也就是 HandlerThread 自动帮我们 Looper.prepare，Looper.loop。我们只要调用 HandlerThread.start 开启线程后，通过该线程的 Looper 对象去构建相应的 Handler 对象即可。
 	* HandlerThread 提供了 quit 和 quitSafely 方法，可以很方便的终止线程消息队列
+
+	关于如何将 Message 压入 MessageQueue？
+	
+	* 调用 Handler 的 send(Message message) 方法发送一个 Message，最终会调用到 MessageQueue 的 enqueueuMessage 方法，将消息放入消息队列
+	* 调用 Handler 的 post(Runnable r) 方法发送一个 Runnable，Runnable 先被封装为 Message 的 callback，再发送该 Message
+	* 调用 View 的 post(Runnable r) 方法发送一个 Runnable，和上一条类似。不过调用的是 UI 线程的 Handler 发送的 Message
+	* 调用 Activity 的 runOnUiThread(Runnable r) 方法，在 UI 线程调用时，直接执行 Runnable，在非 UI 线程调用时，调用 UI 线程的 Handler 将该 Runnable 发送出去
+
+	关于 Looper 从 MessageQueue 中取出消息后的分发？
+	
+	* Looper 从消息队列取出消息后
+	* 首先调用 Handler 的 dispatchMessage 进行分发，我们可以重写此方法更改逻辑。
+	* dispatchMessage 的默认策略如下：
+		* Message 的 callback 不为空时，优先调用 Message 的 callback
+		* Handler 的 mCallback 不为空时，调用 Handler 的 mCallback
+		* 上面俩都为空时，才调用 handleMessage，也就是我们经常重写的那个方法
 
 * 如何降低 Android 应用的耗电量？[Link](https://blog.mindorks.com/battery-optimization-for-android-apps-f4ef6170ff70)
 
