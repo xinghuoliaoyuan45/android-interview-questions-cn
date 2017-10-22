@@ -827,7 +827,7 @@ Java 中的对象以按值传递的形式进行调用，所有方法得到的都
 
 	按注册后是否可接收分为：
 	
-	* 粘性广播：粘性广播发送后，再进行注册的广播接收器也可接收到该广播，可接收到几条？？？
+	* 粘性广播：粘性广播发送后，再进行注册的广播接收器也可接收到最后发出的一条该广播（注：粘性广播在 API 21 中已被 deprecated）
 	* 非粘性广播：广播发送后注册的广播接收器无法接收到该广播
 
 * 你开发过组件吗？请描述一下。[Link](https://blog.mindorks.com/android-widgets-ad3d166458d3)
@@ -836,15 +836,80 @@ Java 中的对象以按值传递的形式进行调用，所有方法得到的都
 
 * 你知道什么是视图树(View Tree)吗？怎样优化它的深度？
 
-* onTrimMemory() 方法是什么？
+* onTrimMemory() 方法是什么？[参考链接1](http://androidperformance.com/2015/07/20/Android-Performance-Memory-onTrimMemory.html)、[参考链接2](http://www.jianshu.com/p/63aafe3c12af)
 
-* Android 应用可以使用多进程吗？怎样使用？
+	* Android 4.0 之后加入的一个回调，任何实现了 CompomentCallbacks2 接口的类都可以重写实现该方法
+	* 主要作用是指导应用程序在不同的情况下进行自身的内存释放，以避免被系统直接杀掉
+	* 系统会根据不同等级的内存使用情况，调用这个回调方法，并传入相应的等级
+	
+	等级分类如下：
+	
+	* TRIM_MEMORY_UI_HIDDEN（20）：常用的一个等级，在 UI 界面被隐藏时回调。此时应释放一些 UI 占用的大块内存
+	
+	程序正常运行时的回调：
+	
+	* TRIM_MEMORY_RUNNING_MODERATE（5）：应用程序正常运行，进程不会被杀掉。但内存已经有点低了，系统可能会开始通过 LRU 缓存规则去杀死缓存进程了
+	* TRIM_MEMORY_RUNNING_LOW（10）：应用程序正常运行，进程不会被杀掉。但手机内存已经非常低了，此时应该释放不需要的资源
+	* TRIM_MEMORY_RUNNING_CRITICAL（15）：应用程序正常运行，但系统已经根据 LRU 缓存规则杀掉了大部分缓存进程。此时应尽可能释放不必要的资源，否则系统会继续杀死缓存进程，并可能开始杀死后台运行服务了
 
-* 内存溢出（OutOfMemory）是怎么发生的？
+	程序是缓存时的回调：
+	
+	* TRIM_MEMORY_BACKGROUND（40）：手机内存已经很低了，系统准备开始根据 LRU 缓存规则来杀死进程了。此时我们的进程已经被加入 LRU 列表中了，此时释放一些资源可以使手机内存保持充足，从而使我们程序更长时间保存在缓存中
+	* TRIM_MEMORY_MODERATE（60）：手机内存已经很低了，此时我们的程序进程处于 LRU 缓存列表的中间位置，如果手机内存资源不能得到释放，我们的缓存进程就有可能被杀死
+	* TRIM_MEMORY_COMPLETE（80）：手机内存已经很低了，此时我们的程序进程处于 LRU 缓存列表的最边缘位置，系统将会优先考虑杀死我们的程序进程，此时应该释放所有能释放的资源
+
+* Android 应用可以使用多进程吗？怎样使用？[参考链接](http://droidyue.com/blog/2017/01/15/android-multiple-processes-summary/index.html)
+
+	如何使用：
+	
+	* 依赖于 android:process 属性
+	* 如果该属性值以 `:` 开头，代表这个进程是应用私有的，无法跨应用共用
+	* 如果该属性值以小写字母开头，代表这个进程是全局进程，可以被多个应用共用
+	* 适用于：Application、Activity、Service、Broadcast、ContentProvider
+	
+	多进程的好处：
+	
+	* 增加 App 可用内存
+	* 独立于主进程，确保某些任务的执行与完成
+
+	多进程的缺点：
+	
+	* 数据共享问题
+	* SQLite 被锁
+	* Application.onCreate() 不必要的初始化
+
+* 内存溢出（OutOfMemory）是怎么发生的？[参考链接](http://www.jianshu.com/p/1e3032c743be)
+
+	内存溢出指程序在申请内存空间时，系统没法提供足够的内存空间供其使用
+
+	* 内存泄漏导致
+	* 保存了多个占用内存过大的对象（如 bitmap）或加载单个超大图片
+
+	加载 bitmap 导致的内存溢出解决方案：
+	
+	* 加载多图使用软引用、弱引用
+	* 图不再使用时，使用 Bitmap.recycle 加速回收
+	* 使用文件缓存
 
 * 文本样式接口（Spannable）是什么？
 
-* 什么是过度绘制（overdraw）？
+* 什么是过度绘制（overdraw）？[参考链接](https://jaeger.itscoder.com/android/2016/09/29/android-performance-overdraw.html)、[参考链接2](http://androidperformance.com/2014/10/20/android-performance-optimization-overdraw-1.html)
+
+	* GPU 过度绘制指：屏幕上的某个像素，在同一帧时间内，被绘制了多次
+
+	产生过度绘制原因：
+	
+	* 多层 View 叠加绘制导致
+	
+	解决过度绘制方法：
+	
+	* 移除默认的 Window 背景
+	* 移除不必要的背景
+	* 写合理且高效的布局，减少层级嵌套
+		* 使用 ViewStub 来加载一些不常用的布局
+		* 使用 merge 标签减少布局嵌套层次
+		* 可复用的组件抽取出来使用 include 引入
+	* 自定义控件进行优化（clipRect、quickReject）
 
 * 什么是渲染脚本（renderscript）？[Link](https://blog.mindorks.com/comparing-android-ndk-and-renderscript-1a718c01f6fe)
 
