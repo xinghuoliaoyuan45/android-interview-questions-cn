@@ -538,7 +538,26 @@ onCreate() -> onContentChanged() -> onStart() -> onPostCreate()-> onResume() -> 
 * 使用 EventBus
 * 使用 Fragment 的 setArguments？
 
-### 阐述一下 Android 的通知系统。
+### 阐述一下 Android 的通知系统。[参考链接1](https://developer.android.com/guide/topics/ui/notifiers/notifications.html?hl=zh-cn#Heads-up)，[参考链接2](http://www.jianshu.com/p/678e2322fd41)
+
+通知是可以在应用常规 UI 外部可以向用户显示的消息。
+
+* 创建通知：
+
+	* 在 NotificationCompat.Builder 对象中指定通知的相关信息
+	* 调用 notify 方法将通知发送出去
+	* 通知操作由 PendingIntent 定义
+
+* 更新通知：
+
+	* 调用 notify 方法时调用带有 id 的通知
+	* 更新或重新创建 NotificationCompat.Builder 对象，重新发送相同 id 的通知对象即可
+
+* 删除通知：
+
+	* 用户手动清除（如果可以清除的话）
+	* 创建通知时调用了 setAutoCancle 方法，且用户点击了通知
+	* 调用 cancle 方法，cancleAll 方法
 
 ### 两个不同的 app 之间如何交互。
 
@@ -592,7 +611,35 @@ onCreate() -> onContentChanged() -> onStart() -> onPostCreate()-> onResume() -> 
 	
 ![](http://oj1pajfyu.bkt.clouddn.com/activity_fragment_lifecycle.png)
 
-### 如何理解 Android 的 Dialog ？
+### 如何理解 Android 的 Dialog ？[参考链接](https://developer.android.com/guide/topics/ui/dialogs.html?hl=zh-cn#FullscreenDialog)
+
+* Dialog 是对话框的基类，使用时应实例化其子类：AlertDialog、DatePickerDialog 或 TimePickerDialog
+* 应使用 DialogFragment 作为对话框的容器
+* 创建对话框：
+
+	* 通过扩展 DialogFragment 并在 onCreateDialog 方法中 创建 AlertDialog
+	* AlertDialog 包括：标题、内容区域、操作按钮
+	* 其中内容区域可以为：单选列表、单选框、复选框
+	* 按钮可以为：肯定、否定、中性
+	* 可以自定义布局
+
+* 事件回传给对话框的宿主
+
+	* 通过 interface 实现，在 DialogFragmen 的 onAttach 方法
+
+* 显示对话框：
+
+	* 调用 DialogFragment 实例的 show 方法
+
+* 清除对话框
+
+	* 用户做出选择后会被清除
+	* 调用 dismiss 方法手动清除
+
+* 取消对话框
+
+	* 代表用户显式离开，而不完成任务（点击返回键、触摸对话框外部区域）
+	* 调用 cancel 方法手动取消
 
 ### 解释下 Android 的 View 。
 
