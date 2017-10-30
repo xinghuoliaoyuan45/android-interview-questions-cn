@@ -658,7 +658,25 @@ onCreate() -> onContentChanged() -> onStart() -> onPostCreate()-> onResume() -> 
 
 ### 谈谈 Serializable 接口和 Parcelable 接口的区别。在 Android 中最好使用哪种接口？
 
-### Activity 的启动模式有哪些？[Link](https://blog.mindorks.com/android-activity-launchmode-explained-cbc6cf996802)
+### Activity 的启动模式有哪些？[参考链接](https://wiki.xuchongyang.com/Android/%E7%BB%86%E8%8A%82%E5%92%8C%E7%90%90%E7%A2%8E%E7%82%B9.html)
+
+* standard 模式：创建新实例，放入当前任务中
+* singleTop 模式：
+
+	* 当前任务中已存在，且在栈顶，不创建
+	* 当前任务中已存在，不在栈顶，创建新实例
+	* 当前任务中不存在，创建新实例
+
+* singleTask 模式：
+
+	* 首先检测要启动的 Activity 的 affinity 和当前任务的 affinity 是否相同
+	* affinity 相同则查看当前任务是否有实例。有则调用其 onNewIntent 方法，实例上面的 Activity 全部出栈；无则创建新实例
+	* affinity 不相同则创建新任务、新实例
+
+* SingleInstance 模式：
+
+	* 启动一个新的任务，创建新实例
+	* 并且新的任务中不会再添加其他 Activity
 
 ### 解释一下 Android 中的 Intent 。[Link](https://stackoverflow.com/questions/6578051/what-is-an-intent-in-android)
 
@@ -693,11 +711,31 @@ onCreate() -> onContentChanged() -> onStart() -> onPostCreate()-> onResume() -> 
 
 ### 如何理解 Android 的 LocalBroadcastManager 。[参考链接](https://developer.android.com/guide/components/fundamentals.html)
 
-### 什么是 JobScheduler ？[Link](http://www.vogella.com/tutorials/AndroidTaskScheduling/article.html)
+* LocalBroadcastManager 为本地广播
+* 使用这个机制发出的广播仅在应用内部传递
+* 广播接收器也只能接收本应用发出的广播
+* 本地广播比系统全局广播更加安全、有效
 
-### 什么是 DDMS ？你可以用它来做什么？
+### 什么是 JobScheduler ？[参考链接](http://blog.csdn.net/bboyfeiyu/article/details/44809395)
+
+* 当一定的条件（网络、时间、电量等）被满足时，JobScheduler 会为应用执行某项任务
+* 与 AlarmManager 不同，JobScheduler 的执行时间是不确定的
+* JobScheduler 允许同时执行多个任务
+
+### 什么是 DDMS ？你可以用它来做什么？[参考链接](https://developer.android.com/studio/profile/monitor.html#usage)
+
+* DDMS 是 Android 应用程序调试和分析工具，可以截屏、查看进程、线程、堆栈信息、Logcat、广播状态信息、模拟呼叫、短信、位置等
+* 但是现在已经不推荐使用
+* Android Studio 3.0 以后推荐使用 Android Profile 来分析网络、内存、cpu 使用状态
+* 推荐使用 ADB 来发送命令、传文件、截图等
 
 ### 解释一下什么是 support libary ，以及为什么要引入 support library ？[Link](http://martiancraft.com/blog/2015/06/android-support-library/)
+
+Android 支持库提供了许多没有内置到框架中的功能。
+
+* 向后兼容：提供了许多没有内置到框架中的功能、UI 元素，可以保证使用了新系统功能的 app 可以向后兼容旧版本系统
+* 提供布局模式、界面元素：可以避免再做一些重复性工作
+* 支持不同形态的设备：可以通过支持库为各个平台（手机、电视、手表等）提供功能
 
 ### 如何理解 Android 中的 ContentProvider 。它通常用来干什么？[参考链接](https://developer.android.com/guide/components/fundamentals.html)
 
