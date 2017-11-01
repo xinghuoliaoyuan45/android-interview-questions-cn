@@ -747,6 +747,9 @@ Android 支持库提供了许多没有内置到框架中的功能。
 
 ### 什么是 Data Binding ？[Link](https://developer.android.com/topic/libraries/data-binding/index.html)
 
+* 数据绑定
+* 
+
 ### Android 的核心组件具体都有什么？[Link](https://developer.android.com/topic/libraries/architecture/index.html)
 
 ### 什么是 ADB ？[参考链接](https://developer.android.com/studio/command-line/adb.html?hl=zh-cn#howadbworks)
@@ -909,11 +912,35 @@ Dalvik 与 JVM 的关系：
 * Lint 是 Android Studio 提供的一个静态代码检查工具
 * 帮助我们发现代码中的潜在 bug、安全、性能、国际化、辅助性、错误拼写等问题
 
-### 什么是 SurfaceView ？
+### 什么是 SurfaceView ？[参考链接](http://blog.csdn.net/luoshengyang/article/details/8661317)
 
-### ListView 和 RecyclerView 有什么区别？
+* SurfaceView 拥有独立的绘图表面，即不与宿主窗口共享一个绘图表面
+* 由于拥有独立的绘图表面，SurfaceView 的 UI 就可以在一个独立的线程中进行绘制
+* 由于不占用主线程资源，SurfaceView 一方面可以实现复杂而高效的 UI，另一方面又会不会导致用户输入不能及时响应
+
+### ListView 和 RecyclerView 有什么区别？[参考链接1](http://www.jianshu.com/p/f592f3715ae2)，[参考链接2](https://www.kymjs.com/code/2016/07/10/01/)
+
+效率上：
+
+* RecyclerView 效率较于 ListView 更高
+* RecyclerView 的 ViewHolder 模式更加规范
+
+功能上：
+
+* RecyclerView 新增了 LayoutManager，布局效果更丰富，包括线性布局、网格布局、瀑布流布局等
+
+使用上：
+
+* ListView 自带空数据处理：setEmptyView 方法
+* ListView 自带 HeaderView、FooterView
+* RecyclerView 提供局部刷新方法：notifyItemChanged
+* RecylerView 默认封装了一些动画
 
 ### 什么是 ViewHolder 模式？为什么我们应该使用它？
+
+* 使用 ListView 或 RecyclerView 时，每个 item 在进入用户视野时会从 item 的 xml 文件中创建 view 对象，这一步可以利用 ConvertView 对创建好的布局进行缓存，直接从 ConvertView 中取即可。
+* 拿到 item 布局后，再 findViewById 找到 item 的子 view 的控件对象，这一步是树查找操作极其耗时。
+* 可以创建一个 ViewHolder 对象，将 item 子控件的实例都存放在 ViewHolder 对象中，这样就不用每次 findViewById 了，提高效率
 
 ### 什么是 PendingIntent ？
 
