@@ -646,7 +646,21 @@ onCreate() -> onContentChanged() -> onStart() -> onPostCreate()-> onResume() -> 
 * View 是 UI 组件最基本的构建块
 * 一个 View 占据屏幕的一块区域，负责绘制和事件处理
 
-### 你能创建自定义 View 吗？具体是如何创建的？
+### 你能创建自定义 View 吗？具体是如何创建的？[参考链接](http://www.gcssloop.com/customview/CustomViewProcess)
+
+* 自定义 View 包括自定义 View 和自定义 ViewGroup
+* 自定义 View 一般继承自 View、SurfaceView 或其他 View，不包含子 View
+* 自定义 ViewGroup 是利用现有的组件，根据特定的布局方式，来组成新的组件。一般继承自 ViewGroup 或各种 Layout，包含有子 View
+* 自定义 View 的流程：
+
+	* 构造函数：初始化一些内容，获取自定义属性
+	* 测量 View 的大小（onMeasure）：View 大小不仅由自身决定，也会受父控件的影响，我们自己进行测量可以适应各种情况
+	* 确定 View 的大小（onSizeChanged）：在视图大小发生改变时调用
+	* 确定子 View 布局（onLayout）：在自定义 ViewGroup 时用到，用于确定子 View 的位置。循环取出子 View，计算出各个子 View 的位置，调用子 View 的 layout 方法设置其位置
+	* 绘制内容（onDraw）
+	* 对外提供操作方法和监听回调：控制 View 的状态，监听 View 的变化等
+
+![](https://ws1.sinaimg.cn/large/c14636dely1fl58olhwpjj20fc0heaay.jpg)
 
 ### 什么是 ViewGroup ，它与 View 的区别在哪里？
 
@@ -655,6 +669,10 @@ onCreate() -> onContentChanged() -> onStart() -> onPostCreate()-> onResume() -> 
 * View 的职能为：根据测量模式和 ViewGroup 建议的宽高计算出自己的宽和高；在 ViewGroup 为其指定的区域内绘制自己的形态
 
 ### Fragment 和 Activity 有什么区别？它们之间又有什么关系？
+
+* Fragment 在 Android 3.0 后引入，可以翻译为碎片、片段
+* Activity 为活动，代表着当前屏幕显示的一个窗口
+* Fragment 可以重用，必须嵌套在 Activity 中使用，由 Activity 的 FragmentManager 管理，生命周期受 Activity 影响
 
 ### 谈谈 Serializable 接口和 Parcelable 接口的区别。在 Android 中最好使用哪种接口？
 
