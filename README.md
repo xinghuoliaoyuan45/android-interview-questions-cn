@@ -818,8 +818,6 @@ ADB 是 Android Debug Bridge 的简称，即 Android 调试桥。是一个通用
 
 ### 解释一下 broadcast 和 intent 在 app 内传递消息的工作流程。
 
-* 
-
 ### 当 Bitmap 占用较多内存时，你是怎么处理的？
 
 ### Android 应用有哪些不同的存储数据的方式？
@@ -842,8 +840,20 @@ Dalvik 与 JVM 的关系：
 * 从 Android 2.2 开始，Dalvik 开始支持即时编译
 * Dalvik 会通过 Zygote 进行类的预加载和资源的预加载，完成虚拟机的初始化
 
-### AsyncTask 的生命周期和(它所属的) Activity 的生命周期有什么关系？这种关系可能会导致什么样的问题？ 如何避免这些问题发生？
+### AsyncTask 的生命周期和(它所属的) Activity 的生命周期有什么关系？这种关系可能会导致什么样的问题？ 如何避免这些问题发生？[参考链接](http://droidyue.com/blog/2014/11/08/bad-smell-of-asynctask-in-android/index.html)
 
+* AsyncTask 并不会随着 Activity 的销毁而销毁，而是会一直执行 doInBackground 方法直到方法结束
+* doInBackground 方法执行结束后，如果 cancel(boolean) 方法调用了，执行 onCancelled 方法；cancel(boolean) 没调用时，执行 onPostExecute 方法
+
+导致的问题：
+
+* 当使用非静态内部 AsyncTask 类时，AsyncTask 类会持有外部类 Activity 的引用，当 Activity 销毁时，如果 AsyncTask 还在执行，会造成 Activity 对象无法回收，内存泄漏
+
+解决方案：
+
+* 如果 doInBackground 方法内有循环操作时，应使用 isCancelled 来进行判断，避免后续无用的循环操作
+* 销毁 Activity 实例时，调用 AsyncTask 的 cancel 方法
+* 使用静态内部类，持有外部类的弱引用
 
 ### Intent filter 是用来做什么的？
 
@@ -855,17 +865,35 @@ Dalvik 与 JVM 的关系：
 
 * Sticky Intent 是发送粘性广播时的消息传递对象
 
-### 什么是 AIDL ？列举一下通过 AIDL 创建被绑定的服务（bounded service）的步骤。
+### 什么是 AIDL ？列举一下通过 AIDL 创建被绑定的服务（bounded service）的步骤。[参考链接](https://xuchongyang.com/2017/08/14/Binder-%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/)
 
-### Android 的权限有多少个不同的保护等级？
+### Android 的权限有多少个不同的保护等级？[参考链接](https://developer.android.com/guide/topics/security/permissions.html?hl=zh-cn)
 
-### 在转屏时你如何保存 Activity 的状态？[Link](https://stackoverflow.com/questions/3915952/how-to-save-state-during-orientation-change-in-android-if-the-state-is-made-of-m)
+* 正常权限：应用需要访问沙盒外部数据或资源，但对用户隐私或其他应用风险很小的区域。系统会自动授予应用正常权限
+* 危险权限：应用需要涉及用户的隐私信息或资源，或对用户数据、其他应用产生影响。用户需手动向应用授予此类权限
+* 特殊权限：SYSTEM_ALERT_WINDOW、WRITE_SETTINGS 等，大多数应用不该使用它们，需要的话需要发送请求用户授予的 Intent
+
+### 在转屏时你如何保存 Activity 的状态？参考《Android 开发艺术探索》Page 8
+
+* 资源相关的系统配置发生改变时会导致 Activity 被杀死并重新创建
+
+保存 Activity 状态的方法：
+
+* 系统会在 Activity 即将被销毁且有机会重新显示的情况下，会在 onStop 方法之前调用 onSaveInstanceState 方法
+* 系统会默认帮我们保存当前 Activity 的视图结构，通过查看每个 View 的 onSaveInstanceState 和 onRestoreInstanceState 方法可以查看系统会自动为 View 保存哪些状态
+* 我们可以手动在 onSaveInstanceState 方法中保存数据
+
+恢复 Activity 状态：
+
+* Activity 启动时，会回调 onCreate 和 onRestoreInstanceState 方法（onStart 方法之后调用），我们可以在这两个方法里拿到 Activity 销毁时保存的数据
+* 在 onCreate 方法中取 Bundle 对象时，需要先判断是否为空，因为正常启动的 Activity 时系统无保存状态
 
 ### 相对布局和线性布局的区别。
 
-	
+### 如何实现 XML 命名空间？[参考链接1](http://www.w3school.com.cn/xml/xml_namespaces.asp)、[参考链接2](http://blog.qiji.tech/archives/3744)
 
-### 如何实现 XML 命名空间？
+* 命名空间里存放的是特定属性的集合，可以避免元素命名冲突
+* 为布局文件的根元素增加 xmlns 属性，即可通过不同的命名空间调用相应的属性
 
 ### View.GONE 和 View.INVISIBLE 之间的区别。
 
@@ -874,7 +902,12 @@ Dalvik 与 JVM 的关系：
 
 ### Bitmap 和 .9（nine-patch）图片之间有什么区别？
 
+* 点 9 图是一种可伸缩的位图，可以指定图片哪些部分可以拉伸，哪些不可以拉伸。避免图片拉伸变形，在不同分辨率下可以达到较好的适配效果。
+* 而 Bitmap 展示出来后在不同的屏幕分辨率下可能会被异常拉伸
+
 ### 谈谈位图池。[Link](https://blog.mindorks.com/how-to-use-bitmap-pool-in-android-56c71a55533c)
+
+
 
 ### 在 Android 中如何避免内存泄漏？[参考链接](http://xuchongyang.com/2017/10/16/Java-%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F%E5%AD%A6%E4%B9%A0/)
 
@@ -885,7 +918,13 @@ Dalvik 与 JVM 的关系：
 
 ### Android 桌面的小部件是什么？
 
-### 什么是 AAPT ？
+* AppWidgetProvider 的本质是一个广播接收器，继承自 BroadcastReceiver
+* 桌面小部件的加载以及更新采用的都是 RemoteViews
+
+### 什么是 AAPT ？[参考链接](https://tech.meituan.com/mt-android-resource-obfuscation.html)
+
+* AAPT 是 Android Asset Packaging Tool 的缩写，为 SDK 自带的工具
+* 可以查看、创建、更新 zip 格式的文档附件（zip、jar、apk），也可以将资源文件编译成二进制文件
 
 ### 你是如何在 Android 应用程序中发现内存泄漏的？[参考链接](http://droidyue.com/blog/2016/11/23/memory-leaks-in-android/index.html)
 
@@ -911,19 +950,58 @@ Dalvik 与 JVM 的关系：
 
 ### 为什么你应该避免在主线程上运行非用户界面相关的代码？
 
+* 如果主线程执行耗时操作的话，当 UI 事件发生时，让用户等待时间超过 5 秒而未处理就会出现 ANR
+* 主线程主要负责把 UI 事件分发给合适的 View 或 Widget
+
 ### 你是如何适配不同分辨率的手机的？[参考链接](http://www.cocoachina.com/android/20151030/13971.html)
 
 ### 如何理解 Doze 模式。如何理解应用程序待机模式（App Standby）。
 
 ### 在 Android 中，你可以使用什么来进行后台操作?
 
+* 采用 Service
+* 采用子线程搭配 Handler
+
 ### 什么是 ORM ？它是如何工作的？
 
-### 什么是 Loader ？
+* ORM 即 Object Relational Mapping，对象关系映射
+* 目前的数据库是关系型数据库，ORM 的工作就是把数据库中的关系数据映射为程序中的对象
 
-### 什么是 NDK ，为什么它是有用的？
+### 什么是 Loader ？[参考链接](https://developer.android.com/guide/components/loaders.html?hl=zh-cn)
 
-### 如何理解严格模式（StrictMode）。 [Link](https://blog.mindorks.com/use-strictmode-to-find-things-you-did-by-accident-in-android-development-4cf0e7c8d997)
+* Loader 即加载器，可以在 Activity 和 Fragment 中轻松实现异步加载数据
+* 对数据源变化进行监听，实时更新数据
+
+### 什么是 NDK ，为什么它是有用的？[参考链接](https://developer.android.com/ndk/guides/concepts.html?hl=zh-cn#hiw)
+
+* NDK 即原生开发工具包，是一组允许在 Android 应用使用原生代码语言（C、C++）的工具
+
+优势：
+
+* 可以从设备获取卓越的性能用于计算密集型应用，如游戏或物理模拟
+* 可以复用 C 或 C++ 库
+* 可以在平台之间移植应用
+
+### 如何理解严格模式（StrictMode）。 [参考链接](http://droidyue.com/blog/2015/09/26/android-tuning-tool-strictmode/index.html)
+
+StrictMode 是用来检测程序中违例情况的开发者工具。最常用的场景是检查主线程中文件读写和网络读写等耗时操作。
+
+StrictMode 主要检测两大问题：线程策略（ThreadPolicy）和 VM 策略（VMPolicy）
+
+线程策略检查等内容有：
+
+* 自定义的耗时调用
+* 磁盘读取
+* 磁盘写入
+* 网络操作
+
+VM 策略检查内容有：
+
+* Activity 泄漏
+* 未关闭的 Closable 对象泄漏
+* Sqlite 对象泄漏
+* 检测实例数量
+
 
 ### 什么是 Lint ？它的用途是什么？
 
