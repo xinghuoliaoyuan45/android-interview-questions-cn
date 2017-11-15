@@ -763,12 +763,26 @@ Android 支持库提供了许多没有内置到框架中的功能。
 * 也适用于读取和写入应用不共享的私有数据
 * 定义内容提供器需要继承自 ContentProvider，并实现相应的方法
 
-### 什么是 Data Binding ？[Link](https://developer.android.com/topic/libraries/data-binding/index.html)
+### 什么是 Data Binding ？[Link](https://developer.android.com/topic/libraries/data-binding/index.html)、[参考链接2](https://tech.meituan.com/android_mvvm.html)
 
-* 数据绑定
-* 
+数据绑定指：将数据源和 UI 进行绑定，并使其同步
 
-### Android 的核心组件具体都有什么？[Link](https://developer.android.com/topic/libraries/architecture/index.html)
+在 Android 中：
+
+* 使用 Android 官方提供的 Data binding 库，将 xml 布局和数据源进行绑定
+* UI 布局接收用户事件并同步更新数据源，修改数据源也可同步展示到 UI 上
+
+数据绑定和 MVVM 的区别：
+
+* MVVM 是一种架构模式
+* 数据绑定是一种实现数据和 UI 绑定的框架
+* 数据绑定是构建 MVVM 模式的一个工具
+
+### Android 的核心组件具体都有什么？
+* Activity
+* Service
+* BroadcastReceiver
+* ContentProvider
 
 ### 什么是 ADB ？[参考链接](https://developer.android.com/studio/command-line/adb.html?hl=zh-cn#howadbworks)
 
@@ -819,6 +833,19 @@ ADB 是 Android Debug Bridge 的简称，即 Android 调试桥。是一个通用
 ### 解释一下 broadcast 和 intent 在 app 内传递消息的工作流程。
 
 ### 当 Bitmap 占用较多内存时，你是怎么处理的？
+* 及时释放 Bitmap 内存
+* 捕获 OutOfMemory 异常
+* 将图片放置于合适的 drawable 文件夹下
+* 图片压缩
+
+	* 质量压缩，通过 Bitmap.compress()
+	* 内存压缩，通过设置 BitmapFactory.Options.inSampleSize 值
+
+* 图片复用
+
+	* 内存缓存
+	* 磁盘缓存
+	* Bitmap 复用
 
 ### Android 应用有哪些不同的存储数据的方式？
 
@@ -919,6 +946,7 @@ Dalvik 与 JVM 的关系：
 ### Android 桌面的小部件是什么？
 
 * AppWidgetProvider 的本质是一个广播接收器，继承自 BroadcastReceiver
+* AppWidgetProvider 能接收 Widget 的相关广播，如 Widget 的更新、删除、开启、禁用等
 * 桌面小部件的加载以及更新采用的都是 RemoteViews
 
 ### 什么是 AAPT ？[参考链接](https://tech.meituan.com/mt-android-resource-obfuscation.html)
@@ -1061,6 +1089,33 @@ cancel 方法：
 ### 你能手动调用垃圾回收吗？
 
 ### 周期地更新页面的最好方式是什么？
+* 使用 Alarm 机制
+* 使用定时器 Timer 类
+
+Alarm 机制简介：参考《第一行代码》Page469
+
+* AlarmManager 设置定时任务的常用方法包括：
+
+	* set(@AlarmType int type, long triggerAtMillis, PendingIntent operation)
+	* setRepeating(@AlarmType int type, long triggerAtMillis,
+            long intervalMillis, PendingIntent operation)
+   * setExact(@AlarmType int type, long triggerAtMillis, PendingIntent operation)
+
+* 顾名思义，set 方法设置的是执行一次的定时任务，setRepeating 方法设置的是循环执行的定时任务
+* 从 Android 4.4 开始，系统会对 Alarm 唤醒对齐，所以 set 方法设置的 Alarm 任务执行可能会有一段时间的误差；而 setExact 方法可以保证唤醒时间的精准。
+* 第一个参数 AlarmType，有以下值可选：
+
+	* ELAPSED_REALTIME：定时任务的触发时间从系统开机算起，不会唤醒 CPU
+	* ELAPSED_REALTIME_WAKEUP：会唤醒 CPU
+	* RTC：定时任务的出发时间从 1970 年 1 月 1 日 0 点算起，不会唤醒 CPU
+	* RTC_WAKEUP：会唤醒 CPU
+	* 系统开机时间可通过 SystemClock.elapsedRealtime 获得
+	* 从 1970 年 1 月 1 日 0 点起的时间可通过 System.currentTimeMillis 获得 intervalMillis 参数代表
+
+* 第二个参数 triggerAtMillis 代表定时任务触发的时间
+* 第三个参数是一个 PendingIntent 代表任务触发时的执行动作
+* setRepeating 方法中的 intervalMillis 代表定时任务的执行时间间隔
+* 另外有 setInexactRepeating 方法用于设定不精确时间的循环定时任务，比 setRepeating 方法更加节能
 
 ### 有哪些类型的广播？
 
@@ -1086,7 +1141,31 @@ cancel 方法：
 
 ### 你开发过组件吗？请描述一下。[Link](https://blog.mindorks.com/android-widgets-ad3d166458d3)
 
-### 如何理解上下文（Context）。怎么使用它？[Link](https://medium.com/p/understanding-context-in-android-application-330913e32514)
+### 如何理解上下文（Context）。怎么使用它？[参考链接1](http://blog.csdn.net/guolin_blog/article/details/47028975)、[参考链接2](http://blog.csdn.net/lmj623565791/article/details/40481055)
+
+* Android 程序要有一个完整的 Android 工程环境，这个工程环境下有四大组件，四大组件需要有各自的上下文
+* 因此 Context 是维持 Android 程序中各个组件正常工作的一个重要功能类
+
+使用中注意点：
+
+![](https://ws1.sinaimg.cn/mw690/c14636degy1flj3pmr4dqj20s20fdab9.jpg)
+
+* getApplication 和 getApplicationContext 都可以获取到 Application 实例，并且获取的是同一个对象
+* getApplication 只可以在 Activity 和 Service 中调用，而任何一个 Context 实例都可以调用 getApplicationContext
+* 和 UI 相关的不建议使用 Application Context，单例模式下需要考虑内存泄漏问题
+* 上图数字1：启动 Activity 在这些类中是可以的，但是需要创建一个新的 task。一般情况不推荐。
+* 上图数字2：在这些类中去 layout inflate 是合法的，但是会使用系统默认的主题样式，如果你自定义了某些样式可能不会被使用。
+* 注：ContentProvider、BroadcastReceiver 之所以在上述表格中，是因为在其内部方法中都有一个 context 用于使用
+
+Context 的继承关系：
+
+![](https://ws1.sinaimg.cn/mw690/c14636degy1flj37qvq3xj20fh0cp0ss.jpg)
+
+由图可见：
+
+* ContextWrapper 是 Context 的封装类，ContextImpl 是 Context 的实现类
+* 我们平时需要 Context 调用的方法都在 ContextWrapper 中可以看到声明，均是调用了成员变量 mBase 的相应方法
+* mBase 为 ContextImpl 对象，在合适的时机由系统调用 attachBaseContext 方法传递进来
 
 ### 你知道什么是视图树(View Tree)吗？怎样优化它的深度？
 
@@ -1179,7 +1258,11 @@ cancel 方法：
 
 ### 谈谈 Android 的注解。[Link1](https://blog.mindorks.com/creating-custom-annotations-in-android-a855c5b43ed9), [Link2](https://blog.mindorks.com/improve-your-android-coding-through-annotations-26b3273c137a)
 
-### 描述一下约束布局（Constraint Layout）。[Link](https://blog.mindorks.com/using-constraint-layout-in-android-531e68019cd)
+### 描述一下约束布局（Constraint Layout）。[参考链接](http://www.jianshu.com/p/32a0a6e0a98a)
+
+* 根据布局中其他元素或视图，确定 View 在布局中的位置
+* View 的位置受到三类约束：其他 View、父容器、基准线
+* 支持设置比例
 
 ### 阐述一下 Android 中的 HashMap , ArrayMap 和 SparseArray 。[Link](https://blog.mindorks.com/android-app-optimization-using-arraymap-and-sparsearray-f2b4e2e3dc47)
 
