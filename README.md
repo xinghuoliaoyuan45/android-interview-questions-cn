@@ -1302,6 +1302,25 @@ Context 的继承关系：
 
 ### 在 Android 中怎么处理多点触控？[link](https://arjun-sna.github.io/android/2016/07/20/multi-touch-android/)
 
+### 谈谈对 RxJava 的理解
+* Rxjava 是一个实现异步操作的库
+* RxJava 基于事件，事件在整个过程中进行流动，流动的同时可以进行线程切换、事件转换等等
+* 最常见的使用情景是：在子线程进行数据计算、网络请求，然后回到主线程展示结果
+
+### LayoutInflater 的 inflate 方法的几个参数分别代表什么？[参考链接](https://xuchongyang.com/2017/09/10/LayoutInflater-%E7%9A%84-inflate-%E6%96%B9%E6%B3%95%E5%88%86%E6%9E%90/)
+* 获取到 LayoutInflater 对象可以通过 `LayoutInflater.from(Context context)`方法或者 `activity.getLayoutInflater()`方法
+* resouse（int）代表：欲加载的 xml 布局文件的 ID
+* root（ViewGroup）代表：当 attachToRoot 为 true 时，root 为 inflate 方法加载出来的 view 的根布局；attach 为 false 时，root 仅仅为将要加载出来的 View 提供一组 LayoutParams 参数
+* attachToRoot（boolean）代表：是否要将加载出来的 View 附加到上面的 root 中
+* return（View）代表：inflate 方法的返回值是一个 View，为即将加载出来的视图结构的根布局。如果 attachToRoot 为 true，则返回的 View 为刚才的 root；否则返回加载出来 View 的根布局
+
+### Maven 和 Gradle 的区别
+
+### OkHttp、Retrofit 的区别
+
+### 介绍下观察者模式
+
+### 
 
 ## 架构
 
